@@ -29,7 +29,7 @@
               <td>{{ task.completedAt }}</td>
             </tr>
 
-            <tr class="hover">
+            <tr>
               <th></th>
               <td>
                 <input
@@ -53,7 +53,7 @@
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
- import BreadCrumbs from '@/modules/common/components/BreadCumbs.vue'; 
+import BreadCrumbs from '@/modules/common/components/BreadCumbs.vue';
 import { useProjectsStore } from '../store/projects.store';
 import type { Project } from '../interface/project.interface';
 

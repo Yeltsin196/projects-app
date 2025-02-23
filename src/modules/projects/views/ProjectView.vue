@@ -1,75 +1,90 @@
 <template>
-  <div class="overflow-x-auto w-full">
-    <table class="table">
-      <!-- head -->
-      <thead>
-        <tr>
-          <th></th>
-          <th>Proyecto</th>
-          <th>Tareas</th>
-          <th>Avance</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="hover">
-          <th>2</th>
-          <td>Hart Hagerty</td>
-          <td>Desktop Support Technician</td>
-          <td>Purple</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="w-full">
+    <section class="m-2">
+      <bread-crumbs :name="project?.name ?? 'No name'" />
+    </section>
 
-  <input-modal
-    :open="modalOpen"
-    @close="modalOpen = false"
-    @value="onNewValue"
-    placeholder="Ingrese el nombre del proyecto"
-    title="Nuevo proyecto"
-    sub-title="Dale un nombre único a tu proyecto"
-  />
+    <section class="m-2">
+      <div class="overflow-x-auto">
+        <table class="table">
+          <!-- head -->
+          <thead>
+            <tr>
+              <th class="w-14">Completada</th>
+              <th>Tarea</th>
+              <th>Completada en</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="task in project?.tasks" :key="task.id" class="hover">
+              <th>
+                <input
+                  type="checkbox"
+                  :checked="!!task.completedAt"
+                  class="checkbox checkbox-primary"
+                  @change="projectStore.toggleTask(project?.id ?? '', task.id)"
+                />
+              </th>
+              <td>{{ task.name }}</td>
+              <td>{{ task.completedAt }}</td>
+            </tr>
 
-  <custom-modal :open="customModalOpen">
-    <template #header>
-      <h1 class="text-3xl">Titulo del modal</h1>
-    </template>
-
-    <template #body>
-      <p>
-        Nulla consequat non ullamco mollit est quis duis pariatur cupidatat consequat Lorem cillum.
-      </p>
-    </template>
-
-    <template #footer>
-      <div class="flex justify-end">
-        <button @click="customModalOpen = false" class="btn mr-4">Close</button>
-        <button @click="customModalOpen = false" class="btn btn-primary">Aceptar</button>
+            <tr class="hover">
+              <th></th>
+              <td>
+                <input
+                  type="text"
+                  class="input input-primary w-full opacity-60 transition-all hover:opacity-100 focus:opacity-100"
+                  placeholder="Nueva tarea"
+                  v-model="newTask"
+                  @keyup.enter="addTask"
+                />
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </template>
-  </custom-modal>
-
-  <fab-button @click="modalOpen = true">
-    <AddCircle />
-  </fab-button>
-
-  <fab-button @click="customModalOpen = true" position="bottom-left">
-    <ModalIcon />
-  </fab-button>
+    </section>
+  </div>
 </template>
 
-<script lang="ts" setup>
-import CustomModal from '@/modules/common/components/CustomModal.vue';
-import FabButton from '@/modules/common/components/FabButton.vue';
-import InputModal from '@/modules/common/components/InputModal.vue';
-import AddCircle from '@/modules/common/icons/AddCircle.vue';
-import ModalIcon from '@/modules/common/icons/ModalIcon.vue';
-import { ref } from 'vue';
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-const modalOpen = ref(false);
-const customModalOpen = ref(false);
+ import BreadCrumbs from '@/modules/common/components/BreadCumbs.vue'; 
+import { useProjectsStore } from '../store/projects.store';
+import type { Project } from '../interface/project.interface';
 
-const onNewValue = (projectName: string) => {
-  console.log({ projectName });
+
+interface Props {
+  id: string;
+}
+const router = useRouter();
+const props = defineProps<Props>();
+const projectStore = useProjectsStore();
+const project = ref<Project | null>();
+const newTask = ref('');
+
+// let project = projectStore.projectList.find((project) => project.id === props.id);
+const addTask = () => {
+  if (!project.value) return;
+
+  projectStore.addTaskToProject(project.value.id, newTask.value);
+  newTask.value = '';
 };
+
+watch(
+  () => props.id,
+  () => {
+    project.value = projectStore.projectList.find((project) => project.id === props.id);
+    if (!project.value) {
+      router.replace('/');
+    }
+  },
+  {
+    immediate: true,
+  },
+);
 </script>
